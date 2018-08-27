@@ -4728,7 +4728,7 @@ static int janus_streaming_rtsp_parse_sdp(const char *buffer, const char *name, 
 	socklen_t len = sizeof(address);
 	/* loop until can bind two adjacent ports for RTP and RTCP */
 	do {
-		fds->fd = janus_streaming_create_fd(vport2, mcast, iface, media, media, name);
+		fds->fd = janus_streaming_create_fd(0, mcast, iface, media, media, name);
 		if(fds->fd < 0) {
 			return -1;
 		}
