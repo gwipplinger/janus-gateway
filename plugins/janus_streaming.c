@@ -4684,7 +4684,7 @@ static size_t janus_streaming_rtsp_curl_callback(void *payload, size_t size, siz
 }
 
 static int janus_streaming_rtsp_parse_sdp(const char *buffer, const char *name, const char *media, int *pt,
-		char *transport, char *host, char *rtpmap, char *fmtp, char *control, const janus_network_address *iface, multiple_fds *fds) {
+					  char *transport, char *host, uint16_t vport, char *rtpmap, char *fmtp, char *control, const janus_network_address *iface, multiple_fds *fds) {
 	char pattern[256];
 	g_snprintf(pattern, sizeof(pattern), "m=%s", media);
 	char *m = strstr(buffer, pattern);
@@ -4728,7 +4728,7 @@ static int janus_streaming_rtsp_parse_sdp(const char *buffer, const char *name, 
 	socklen_t len = sizeof(address);
 	/* loop until can bind two adjacent ports for RTP and RTCP */
 	do {
-		fds->fd = janus_streaming_create_fd(0, mcast, iface, media, media, name);
+		fds->fd = janus_streaming_create_fd(vport, mcast, iface, media, media, name);
 		if(fds->fd < 0) {
 			return -1;
 		}
@@ -4770,6 +4770,7 @@ static int janus_streaming_rtsp_connect_to_server(janus_streaming_mountpoint *mp
 	char *name = mp->name;
 	gboolean doaudio = mp->audio;
 	gboolean dovideo = mp->video;
+	uint16_t vport = mp->video_port;
 
 	CURL *curl = curl_easy_init();
 	if(curl == NULL) {
@@ -4850,11 +4851,11 @@ static int janus_streaming_rtsp_connect_to_server(janus_streaming_mountpoint *mp
 	/* Parse both video and audio first before proceed to setup as curldata will be reused */
 	int vresult;
 	vresult = janus_streaming_rtsp_parse_sdp(curldata->buffer, name, "video", &vpt,
-		vtransport, vhost, vrtpmap, vfmtp, vcontrol, &source->video_iface, &video_fds);
+						 vtransport, vhost, vport, vrtpmap, vfmtp, vcontrol, &source->video_iface, &video_fds);
 
 	int aresult;
 	aresult = janus_streaming_rtsp_parse_sdp(curldata->buffer, name, "audio", &apt,
-		atransport, ahost, artpmap, afmtp, acontrol, &source->audio_iface, &audio_fds);
+						 atransport, ahost, 0, artpmap, afmtp, acontrol, &source->audio_iface, &audio_fds);
 
 	if(vresult != -1) {
 		/* Send an RTSP SETUP for video */
