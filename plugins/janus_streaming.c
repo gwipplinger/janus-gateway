@@ -4770,7 +4770,7 @@ static int janus_streaming_rtsp_connect_to_server(janus_streaming_mountpoint *mp
 	char *name = mp->name;
 	gboolean doaudio = mp->audio;
 	gboolean dovideo = mp->video;
-	uint16_t vport = mp->video_port;
+	uint16_t vport = source->video_port;
 
 	CURL *curl = curl_easy_init();
 	if(curl == NULL) {
